@@ -1,7 +1,8 @@
 import os
 import argparse
+import fnmatch
 
-def tree(startpath, exclude_dirs=None):
+def tree(startpath, exclude_dirs=None, file_filter=None, max_depth=None, include_sizes=False, include_times=False, sort_by_time=False):
     if exclude_dirs is None:
         exclude_dirs = []
 
@@ -16,6 +17,9 @@ def tree(startpath, exclude_dirs=None):
         dirs[:] = [d for d in dirs if d not in exclude_dirs]
 
         level = root.replace(startpath, '').count(os.sep)
+        if max_depth is not None and level > max_depth:
+            continue
+
         indent = ' ' * 4 * (level - 1)
         subindent = ' ' * 4 * level
 
@@ -23,22 +27,43 @@ def tree(startpath, exclude_dirs=None):
         if level > 0:
             print('{}├───{}/'.format(indent, os.path.basename(root)))
 
+        # Filter files if needed
+        if file_filter:
+            files = fnmatch.filter(files, file_filter)
+
+        # Sort files by modification time if needed
+        if sort_by_time:
+            files.sort(key=lambda x: os.path.getmtime(os.path.join(root, x)))
+
         # Print files
         for i, f in enumerate(sorted(files)):
+            details = []
+            if include_sizes:
+                size = os.path.getsize(os.path.join(root, f))
+                details.append(f"{size} bytes")
+            if include_times:
+                mtime = os.path.getmtime(os.path.join(root, f))
+                details.append(f"Modified: {mtime}")
             prefix = '├───' if i != len(files) - 1 else '└───'
-            print('{}{}{}'.format(subindent, prefix, f))
+            print('{}{}{} {}'.format(subindent, prefix, f, ' '.join(details)))
 
 
 def process_paths(path):
     return path.replace(".\\", "")
 
-if __name__ == "__main__":  
-  parser = argparse.ArgumentParser()  
 
-  parser.add_argument("startpath", nargs='?', default=".", type=str, help="The start path for the tree. Defaults to the current directory.")  
-  parser.add_argument("-e", "--exclude", nargs='*', default=["venv"], type=process_paths, 
-                      help="List of directories to exclude. Defaults to the ['venv'] directory. If multiple directories, separate them by space.")  
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
 
-  args = parser.parse_args()  
+    parser.add_argument("startpath", nargs='?', default=".", type=str, help="The start path for the tree. Defaults to the current directory.")
+    parser.add_argument("-e", "--exclude", nargs='*', default=["venv"], type=process_paths,
+                        help="List of directories to exclude. Defaults to the ['venv'] directory. If multiple directories, separate them by space.")
+    parser.add_argument("-f", "--filter", type=str, help="File type filter (e.g. '*.py' for Python files)")
+    parser.add_argument("-d", "--depth", type=int, help="Max depth of the displayed tree")
+    parser.add_argument("-s", "--sizes", action='store_true', help="Include file sizes in the output")
+    parser.add_argument("-t", "--times", action='store_true', help="Include file modification times in the output")
+    parser.add_argument("--sort", action='store_true', help="Sort files by modification time")
 
-  tree(args.startpath, args.exclude)
+    args = parser.parse_args()
+
+    tree(args.startpath, args.exclude, args.filter, args.depth, args.sizes, args.times, args.sort)
