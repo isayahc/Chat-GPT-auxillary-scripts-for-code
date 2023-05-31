@@ -1,5 +1,4 @@
-
-# Chat-GPT auxillary scripts for code
+# Chat-GPT Auxiliary Scripts for Code
 
 This Python project contains two primary components:
 
@@ -10,31 +9,47 @@ This Python project contains two primary components:
 ## Installation
 
 1. Clone the repository:
-```
+
+```bash
 git clone https://github.com/isayahc/Chat-GPT-auxillary-scripts-for-code.git
 ```
+
 2. Navigate to the project directory:
+
+```bash
+cd Chat-GPT-auxillary-scripts-for-code
 ```
-cd repository
-```
+
 3. Ensure you have Python 3.8 or later installed. You can verify this with `python --version`.
 
 ## Usage
 
 ### Python Code Analyzer
+
 To use the Python Code Analyzer, run the script with a Python file as an argument:
-```
-python python_code_analyzer.py file.py
+
+```bash
+python python_code_analyzer.py <filename>.py
 ```
 
+This will print out a dictionary detailing each function and method in the file.
+
 ### Directory Tree Printer
+
 To use the Directory Tree Printer, run the script with the directory you want to print:
+```bash
+python directory_tree_printer.py <directory_path>
 ```
-python directory_tree_printer.py directory
-```
-You can customize the output with various options. For example, to print only Python files up to a depth of 2, include file sizes, and sort by modification time, you would run:
-```
-python directory_tree_printer.py directory -f "*.py" -d 2 -s --sort
+You can customize the output with various options:
+- `-f "*.py"` or `--filter "*.py"` to filter by file type (e.g., "*.py" for Python files)
+- `-d 2` or `--depth 2` to limit the depth of the directory tree
+- `-s` or `--size` to include file sizes
+- `--sort` to sort the files by modification time
+
+For example, to print only Python files up to a depth of 2, include file sizes, and sort by modification time, you would run:
+
+```bash
+python directory_tree_printer.py <directory_path> -f "*.py" -d 2 -s --sort
 ```
 
 ## Contributing
