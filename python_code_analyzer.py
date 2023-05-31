@@ -1,13 +1,14 @@
 """
-A Python script to analyze another Python file and extract details about its functions, methods, dependencies, and entry points.
+A Python script to analyze Python files in a directory and extract details about its functions, methods, dependencies, and entry points.
 
-Usage: python python_code_analyzer.py <file-to-analyze.py>
+Usage: python python_code_analyzer.py <directory-to-analyze>
 """
 
 import ast
 import argparse
 import os
 from typing import Optional, Dict, Any
+
 
 def get_func_details(node: ast.AST, class_name: Optional[str] = None) -> Dict[str, Any]:
     """
@@ -46,6 +47,7 @@ def get_func_details(node: ast.AST, class_name: Optional[str] = None) -> Dict[st
 
     return func_details
 
+
 def analyze_python_file(filepath: str) -> Dict[str, Any]:
     """
     Analyze a Python file and extract details about its functions, methods, dependencies, and entry points.
@@ -68,13 +70,41 @@ def analyze_python_file(filepath: str) -> Dict[str, Any]:
 
     return get_func_details(module)
 
+
+def analyze_python_directory(directory: str):
+    """
+    Analyze all Python files in a directory and extract details about their functions, methods, dependencies, and entry points.
+
+    :param directory: The path to the directory
+    :return: None
+    """
+    if not os.path.isdir(directory):
+        raise ValueError(f"{directory} does not exist")
+
+    for root, dirs, files in os.walk(directory):
+        for file in files:
+            if file.endswith('.py'):
+                filepath = os.path.join(root, file)
+                try:
+                    func_details = analyze_python_file(filepath)
+                    print(f"{filepath}:")
+                    print(func_details)
+                except ValueError as e:
+                    print(f"Error with {filepath}: {str(e)}")
+
+
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Get function details from a Python file.')
-    parser.add_argument('file', type=str, help='The Python file to analyze.')
+    parser = argparse.ArgumentParser(description='Get function details from Python files.')
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument('--file', type=str, help='The Python file to analyze.')
+    group.add_argument('--directory', type=str, help='The directory of Python files to analyze.')
     args = parser.parse_args()
 
-    try:
-        func_details = analyze_python_file(args.file)
-        print(func_details)
-    except ValueError as e:
-        print(f"Error: {str(e)}")
+    if args.file:
+        try:
+            func_details = analyze_python_file(args.file)
+            print(func_details)
+        except ValueError as e:
+            print(f"Error: {str(e)}")
+    elif args.directory:
+        analyze_python_directory(args.directory)
