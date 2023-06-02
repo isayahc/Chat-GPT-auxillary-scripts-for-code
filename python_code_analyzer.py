@@ -1,11 +1,3 @@
-"""
-A Python script to analyze another Python file and extract details about its functions, methods, dependencies, and entry points.
-
-Usage: 
-For single file: python python_code_analyzer.py -f <file-to-analyze.py>
-For directory: python python_code_analyzer.py -d <directory>
-"""
-
 import ast
 import argparse
 import os
@@ -13,15 +5,25 @@ from typing import Optional, Dict, Any
 
 class PythonCodeAnalyzer:
     def __init__(self, include_class_attrs: bool = False):
+        """
+        Initialize the PythonCodeAnalyzer.
+
+        Args:
+            include_class_attrs (bool, optional): Whether to include class attributes in the analysis. Defaults to False.
+        """
         self.include_class_attrs = include_class_attrs
+        self.package_details = {}
 
     def get_func_details(self, node: ast.AST, class_name: Optional[str] = None) -> Dict[str, Any]:
         """
         Recursively traverse an AST node to extract function/method details.
 
-        :param node: The AST node to analyze
-        :param class_name: The name of the class if the node is a method
-        :return: A dictionary with function/method details
+        Args:
+            node (ast.AST): The AST node to analyze.
+            class_name (str, optional): The name of the class if the node is a method.
+
+        Returns:
+            Dict[str, Any]: A dictionary with function/method details.
         """
         if isinstance(node, ast.FunctionDef):
             return self.handle_functiondef(node, class_name)
@@ -34,7 +36,17 @@ class PythonCodeAnalyzer:
         else:
             return {}
 
-    def handle_functiondef(self, node, class_name):
+    def handle_functiondef(self, node: ast.FunctionDef, class_name: Optional[str]) -> Dict[str, Any]:
+        """
+        Handle a FunctionDef node and extract function details.
+
+        Args:
+            node (ast.FunctionDef): The FunctionDef node to handle.
+            class_name (Optional[str]): The name of the class if the node is a method.
+
+        Returns:
+            Dict[str, Any]: A dictionary with function details.
+        """
         func_details = {}
         func_name = f"{class_name}.{node.name}" if class_name else node.name
         func_details[func_name] = {
@@ -46,7 +58,16 @@ class PythonCodeAnalyzer:
         }
         return func_details
 
-    def handle_classdef(self, node):
+    def handle_classdef(self, node: ast.ClassDef) -> Dict[str, Any]:
+        """
+        Handle a ClassDef node and extract class details.
+
+        Args:
+            node (ast.ClassDef): The ClassDef node to handle.
+
+        Returns:
+            Dict[str, Any]: A dictionary with class details.
+        """
         func_details = {}
         for sub_node in node.body:
             func_details.update(self.get_func_details(sub_node, class_name=node.name))
@@ -54,7 +75,16 @@ class PythonCodeAnalyzer:
             func_details['class_attributes'] = [ast.unparse(attr) for attr in node.body if isinstance(attr, ast.Assign)]
         return func_details
 
-    def handle_call(self, node):
+    def handle_call(self, node: ast.Call) -> Dict[str, Any]:
+        """
+        Handle a Call node and extract dependency details.
+
+        Args:
+            node (ast.Call): The Call node to handle.
+
+        Returns:
+            Dict[str, Any]: A dictionary with dependency details.
+        """
         func_details = {'dependencies': []}
         if isinstance(node.func, ast.Name):
             func_details['dependencies'].append(node.func.id)
@@ -62,7 +92,16 @@ class PythonCodeAnalyzer:
             func_details['dependencies'].append(node.func.attr)
         return func_details
 
-    def handle_module(self, node):
+    def handle_module(self, node: ast.Module) -> Dict[str, Any]:
+        """
+        Handle a Module node and extract function details.
+
+        Args:
+            node (ast.Module): The Module node to handle.
+
+        Returns:
+            Dict[str, Any]: A dictionary with function details.
+        """
         func_details = {}
         for sub_node in node.body:
             func_details.update(self.get_func_details(sub_node))
@@ -72,9 +111,14 @@ class PythonCodeAnalyzer:
         """
         Analyze a Python file and extract details about its functions, methods, dependencies, and entry points.
 
-        :param filepath: The path to the Python file
-        :return: A dictionary with function/method details
-        :raises ValueError: If the file does not exist, is not a Python file, or contains syntax errors
+        Args:
+            filepath (str): The path to the Python file.
+
+        Returns:
+            Dict[str, Any]: A dictionary with function/method details.
+
+        Raises:
+            ValueError: If the file does not exist, is not a Python file, or contains syntax errors.
         """
         if not os.path.isfile(filepath):
             raise ValueError(f"{filepath} does not exist")
@@ -102,6 +146,7 @@ if __name__ == '__main__':
     try:
         if args.file:
             func_details = analyzer.analyze_python_file(args.file)
+            print(f"\nFile: {args.file}")
             print(func_details)
         elif args.directory:
             for root, _, files in os.walk(args.directory):
@@ -109,7 +154,6 @@ if __name__ == '__main__':
                     if file.endswith('.py'):
                         filepath = os.path.join(root, file)
                         print(f"\nFile: {filepath}")
-                        func_details = analyzer.analyze_python_file(filepath)
-                        print(func_details)
+                        print(analyzer.analyze_python_file(filepath))
     except ValueError as e:
         print(f"Error: {str(e)}")
