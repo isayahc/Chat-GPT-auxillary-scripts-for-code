@@ -2,7 +2,7 @@ import os
 import argparse
 import fnmatch
 
-def tree(startpath, exclude_dirs=None, file_filter=None, max_depth=None, include_sizes=False, include_times=False, sort_by_time=False):
+def print_directory_structure(startpath, exclude_dirs=None, file_filter=None, max_depth=None, include_sizes=False, include_times=False, sort_by_time=False):
     if exclude_dirs is None:
         exclude_dirs = []
 
