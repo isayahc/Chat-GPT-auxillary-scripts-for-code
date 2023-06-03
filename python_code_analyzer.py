@@ -4,12 +4,12 @@ import os
 from typing import Optional, Dict, Any
 
 class PythonCodeAnalyzer:
-    def __init__(self, include_class_attrs: bool = False):
+    def __init__(self, include_class_attrs: bool = True):
         """
         Initialize the PythonCodeAnalyzer.
 
         Args:
-            include_class_attrs (bool, optional): Whether to include class attributes in the analysis. Defaults to False.
+            include_class_attrs (bool, optional): Whether to include class attributes in the analysis. Defaults to True.
         """
         self.include_class_attrs = include_class_attrs
         self.package_details = {}
