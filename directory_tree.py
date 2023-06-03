@@ -73,7 +73,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument("startpath", nargs='?', default=".", type=str, help="The start path for the tree. Defaults to the current directory.")
-    parser.add_argument("-e", "--exclude", nargs='*', default=["venv"], type=process_paths,
+    parser.add_argument("-e", "--exclude", nargs='*', default=["venv", ".git", "pycache", ".pytest_cache/",".vscode"], type=process_paths,
                         help="List of directories to exclude. Defaults to the ['venv'] directory. If multiple directories, separate them by space.")
     parser.add_argument("-f", "--filter", type=str, help="File type filter (e.g. '*.py' for Python files)")
     parser.add_argument("-d", "--depth", type=int, help="Max depth of the displayed tree")
