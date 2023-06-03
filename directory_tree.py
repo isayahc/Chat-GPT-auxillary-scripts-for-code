@@ -83,4 +83,4 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    tree(args.startpath, args.exclude, args.filter, args.depth, args.sizes, args.times, args.sort)
+    print_directory_structure(args.startpath, args.exclude, args.filter, args.depth, args.sizes, args.times, args.sort)
