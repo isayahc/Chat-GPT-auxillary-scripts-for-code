@@ -2,7 +2,24 @@ import os
 import argparse
 import fnmatch
 
-def tree(startpath, exclude_dirs=None, file_filter=None, max_depth=None, include_sizes=False, include_times=False, sort_by_time=False):
+def print_directory_structure(startpath, exclude_dirs=None, file_filter=None, max_depth=None, include_sizes=False, include_times=False, sort_by_time=False):
+    """
+    Recursively displays the directory tree structure starting from the specified path.
+
+    Args:
+        startpath (str): The path to the root directory to display the tree structure from.
+        exclude_dirs (list[str], optional): Directories to exclude from the tree structure. Defaults to None.
+        file_filter (str, optional): Filter for file names. Only files matching the filter will be displayed. Defaults to None.
+        max_depth (int, optional): Maximum depth of the tree structure. Directories beyond this depth will be excluded. Defaults to None.
+        include_sizes (bool, optional): Flag to include file sizes in the output. Defaults to False.
+        include_times (bool, optional): Flag to include file modification times in the output. Defaults to False.
+        sort_by_time (bool, optional): Flag to sort files by modification time. Defaults to False.
+
+    Returns:
+        None
+
+    Prints the directory tree structure to the console.
+    """
     if exclude_dirs is None:
         exclude_dirs = []
 
