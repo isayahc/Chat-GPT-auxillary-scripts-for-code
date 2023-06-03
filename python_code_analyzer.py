@@ -12,7 +12,6 @@ class PythonCodeAnalyzer:
             include_class_attrs (bool, optional): Whether to include class attributes in the analysis. Defaults to True.
         """
         self.include_class_attrs = include_class_attrs
-        self.package_details = {}
 
     def get_func_details(self, node: ast.AST, class_name: Optional[str] = None) -> Dict[str, Any]:
         """
@@ -56,6 +55,14 @@ class PythonCodeAnalyzer:
             'dependencies': [],
             'entry_point': class_name is None and node.name == '__main__',
         }
+        
+        if args.exclude_docstrings:
+            func_details[func_name].pop('docstring', None)
+        elif args.focus_docstrings:
+            for key in list(func_details[func_name].keys()):
+                if key != 'docstring':
+                    func_details[func_name].pop(key, None)
+        
         return func_details
 
     def handle_classdef(self, node: ast.ClassDef) -> Dict[str, Any]:
@@ -68,12 +75,12 @@ class PythonCodeAnalyzer:
         Returns:
             Dict[str, Any]: A dictionary with class details.
         """
-        func_details = {}
+        class_details = {}
         for sub_node in node.body:
-            func_details.update(self.get_func_details(sub_node, class_name=node.name))
+            class_details.update(self.get_func_details(sub_node, class_name=node.name))
         if self.include_class_attrs:
-            func_details['class_attributes'] = [ast.unparse(attr) for attr in node.body if isinstance(attr, ast.Assign)]
-        return func_details
+            class_details['class_attributes'] = [ast.unparse(attr) for attr in node.body if isinstance(attr, ast.Assign)]
+        return class_details
 
     def handle_call(self, node: ast.Call) -> Dict[str, Any]:
         """
@@ -140,8 +147,14 @@ if __name__ == '__main__':
     parser.add_argument('-d', '--directory', type=str, help='The directory containing Python files to analyze.')
     parser.add_argument('-c', '--classattrs', action='store_true', help='Include class attributes in the analysis.')
     parser.add_argument('--include-venv', action='store_true', default=False, help="Include the venv directory in the analysis")
+    parser.add_argument('--exclude-docstrings', action='store_true', default=False, help="Exclude docstrings in the analysis")
+    parser.add_argument('--focus-docstrings', action='store_true', default=False, help="Focus on docstrings in the analysis")
 
     args = parser.parse_args()
+    
+    if args.exclude_docstrings and args.focus_docstrings:
+        raise ValueError("The flags --exclude-docstrings and --focus-docstrings cannot be used together")
+
     analyzer = PythonCodeAnalyzer(include_class_attrs=args.classattrs)
 
     try:
@@ -151,7 +164,6 @@ if __name__ == '__main__':
             print(func_details)
         elif args.directory:
             for root, _, files in os.walk(args.directory):
-                # Skip venv directory if the flag is not set
                 if "venv" in root and not args.include_venv:
                     continue
 
@@ -162,4 +174,3 @@ if __name__ == '__main__':
                         print(analyzer.analyze_python_file(filepath))
     except ValueError as e:
         print(f"Error: {str(e)}")
-
