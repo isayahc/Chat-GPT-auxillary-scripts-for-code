@@ -73,14 +73,19 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument("startpath", nargs='?', default=".", type=str, help="The start path for the tree. Defaults to the current directory.")
-    parser.add_argument("-e", "--exclude", nargs='*', default=["venv", ".git", "pycache", ".pytest_cache/","__pycache__"], type=process_paths,
-                        help="List of directories to exclude. Defaults to the ['venv'] directory. If multiple directories, separate them by space.")
+    parser.add_argument("-e", "--exclude", nargs='*', default=[".git", "pycache", ".pytest_cache/", "__pycache__"], type=process_paths,
+                        help="List of directories to exclude. Defaults to the ['.git'] directory. If multiple directories, separate them by space.")
     parser.add_argument("-f", "--filter", type=str, help="File type filter (e.g. '*.py' for Python files)")
     parser.add_argument("-d", "--depth", type=int, help="Max depth of the displayed tree")
     parser.add_argument("-s", "--sizes", action='store_true', help="Include file sizes in the output")
     parser.add_argument("-t", "--times", action='store_true', help="Include file modification times in the output")
     parser.add_argument("--sort", action='store_true', help="Sort files by modification time")
+    parser.add_argument("--include-venv", action='store_true', default=False, help="Include the venv directory in the output")
 
-    args = parser.parse_args()
+    args = parser.add_argument()
+
+    # Add "venv" to the list of directories to exclude if the --include-venv flag is not set
+    if not args.include_venv:
+        args.exclude.append("venv")
 
     print_directory_structure(args.startpath, args.exclude, args.filter, args.depth, args.sizes, args.times, args.sort)
