@@ -139,6 +139,7 @@ if __name__ == '__main__':
     parser.add_argument('-f', '--file', type=str, help='The Python file to analyze.')
     parser.add_argument('-d', '--directory', type=str, help='The directory containing Python files to analyze.')
     parser.add_argument('-c', '--classattrs', action='store_true', help='Include class attributes in the analysis.')
+    parser.add_argument('--include-venv', action='store_true', default=False, help="Include the venv directory in the analysis")
 
     args = parser.parse_args()
     analyzer = PythonCodeAnalyzer(include_class_attrs=args.classattrs)
@@ -150,6 +151,10 @@ if __name__ == '__main__':
             print(func_details)
         elif args.directory:
             for root, _, files in os.walk(args.directory):
+                # Skip venv directory if the flag is not set
+                if "venv" in root and not args.include_venv:
+                    continue
+
                 for file in files:
                     if file.endswith('.py'):
                         filepath = os.path.join(root, file)
@@ -157,3 +162,4 @@ if __name__ == '__main__':
                         print(analyzer.analyze_python_file(filepath))
     except ValueError as e:
         print(f"Error: {str(e)}")
+
