@@ -1,3 +1,30 @@
+"""
+This module provides the `PythonCodeAnalyzer` class for analyzing Python code.
+
+The `PythonCodeAnalyzer` class uses Python's abstract syntax trees (ASTs) to extract
+information about functions and methods from a Python file. The details include function
+signature (arguments and return type), docstring, dependencies, and whether the function
+is an entry point (i.e., the function is named "__main__").
+
+The module also provides a script interface. When run as a script, it uses command line
+arguments to specify the Python file or directory to analyze, and other options.
+
+The script usage is as follows:
+    python python_code_analyzer.py -f <file>       # to analyze a single file
+    python python_code_analyzer.py -d <directory> # to analyze all files in a directory
+    Options:
+        -c, --classattrs        Include class attributes in the analysis
+        --include-venv          Include the venv directory in the analysis
+        --exclude-docstrings    Exclude docstrings in the analysis
+        --focus-docstrings      Focus on docstrings in the analysis
+
+Note: The module provides a function to retrieve the module-level docstring from a Python
+file. It only works for module-level docstrings that are defined as a string literal at the
+top of the file. It won't work for docstrings that are dynamically generated or assigned to 
+a variable before being assigned to __doc__. However, such practices are rare and not recommended.
+"""
+
+
 import ast
 import argparse
 import os
@@ -140,6 +167,31 @@ class PythonCodeAnalyzer:
                 raise ValueError(f"{filepath} contains syntax errors: {str(e)}")
 
         return self.get_func_details(module)
+    
+    def get_module_docstring(self, filepath: str) -> Optional[str]:
+        """
+        Get the module-level docstring from a Python file.
+
+        This approach only works for module-level docstrings that are defined as 
+        a string literal at the top of the file. It won't work for docstrings that 
+        are dynamically generated or assigned to a variable before being assigned 
+        to __doc__. However, such practices are rare and not recommended.
+
+        Args:
+            filepath (str): The path to the Python file.
+
+        Returns:
+            Optional[str]: The module-level docstring, if it exists. Otherwise, None.
+            """
+
+        with open(filepath, 'r') as file:
+            module = ast.parse(file.read())
+            
+        if module.body and isinstance(module.body[0], ast.Expr) and isinstance(module.body[0].value, ast.Str):
+            return module.body[0].value.s
+        
+        return None
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Get function details from a Python file.')
@@ -150,6 +202,11 @@ if __name__ == '__main__':
     parser.add_argument('--exclude-docstrings', action='store_true', default=False, help="Exclude docstrings in the analysis")
     parser.add_argument('--focus-docstrings', action='store_true', default=False, help="Focus on docstrings in the analysis")
 
+    # Add mutually exclusive group for docstring actions
+    docstring_group = parser.add_mutually_exclusive_group()
+    docstring_group.add_argument('--add-docstring', action='store_true', default=False, help="Add a module-level docstring")
+    docstring_group.add_argument('--print-docstring', action='store_true', default=False, help="Print the module-level docstring and exit")
+
     args = parser.parse_args()
     
     if args.exclude_docstrings and args.focus_docstrings:
@@ -157,6 +214,24 @@ if __name__ == '__main__':
 
     analyzer = PythonCodeAnalyzer(include_class_attrs=args.classattrs)
 
+    # Handle docstring actions
+    if args.print_docstring:
+        if args.file:
+            print(analyzer.get_module_docstring(args.file))
+            exit()
+        elif args.directory:
+            for root, _, files in os.walk(args.directory):
+                if "venv" in root and not args.include_venv:
+                    continue
+
+                for file in files:
+                    if file.endswith('.py'):
+                        filepath = os.path.join(root, file)
+                        print(f"\nFile: {filepath}")
+                        print(analyzer.get_module_docstring(filepath))
+            exit()
+
+    # Continue with the rest of the analysis...
     try:
         if args.file:
             func_details = analyzer.analyze_python_file(args.file)

@@ -1,3 +1,28 @@
+"""
+A script to display the directory tree structure of a given path in the console.
+
+This script accepts a path and several optional parameters to customize the output. It walks through the directory tree
+and prints the structure in a clear and legible way. It provides options to exclude certain directories, filter files by
+type, limit the depth of the tree, include file sizes, include file modification times, and sort files by modification
+time.
+
+This script uses the built-in `os` module for filesystem operations and the `argparse` module for command-line argument
+parsing. It also uses the `fnmatch` module to support file name filtering.
+
+Example usage:
+    python directory_structure.py --startpath ./my_project --exclude venv .git --filter *.py --depth 3 --sizes --times --sort
+
+Functions:
+    print_directory_structure: The main function that prints the directory tree structure.
+    process_paths: A helper function that cleans up paths in command-line arguments.
+
+If executed as a script, it uses argparse to parse command-line arguments and calls `print_directory_structure` with
+the appropriate parameters.
+
+Author: Your Name
+Date: 2023-06-02
+"""
+
 import os
 import argparse
 import fnmatch
